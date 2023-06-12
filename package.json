@@ -32,7 +32,8 @@
     "check": "tsc",
     "build": "rollup -c scripts/rollup.config.mjs",
     "test": "vitest",
-    "prepublishOnly": "run-s check build",
+    "test:run": "vitest --run",
+    "prepublishOnly": "run-s check test:run build",
     "prepare": "node ./scripts/prepare.js || true"
   },
   "prettier": {
