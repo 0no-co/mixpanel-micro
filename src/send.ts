@@ -39,7 +39,7 @@ const queue: Payload[] = [];
 let task = false;
 let muted = false;
 
-async function flushPayload(data: Payload) {
+export async function _flushPayload(data: Payload) {
   let url = '$set' in data ? ENGAGE_URL : TRACKING_URL;
   const serialized = base64(JSON.stringify(data, replacer));
   const timestamp = Date.now();
@@ -71,11 +71,11 @@ async function flushPayload(data: Payload) {
   return true;
 }
 
-async function flushQueue() {
+async function _flushQueue() {
   if (hasState()) {
     let payload: Payload | void;
     while ((payload = queue.shift()) && isOnline())
-      if (!(await flushPayload(payload))) queue.unshift(payload);
+      if (!(await _flushPayload(payload))) queue.unshift(payload);
     task = false;
 
     if (queue.length) {
@@ -88,14 +88,14 @@ export function init() {
   function onOnline() {
     if (!task) {
       task = true;
-      flushQueue();
+      _flushQueue();
     }
   }
 
   function onVisibilityChange(_event: Event) {
     if (!task && document.visibilityState === 'hidden') {
       task = true;
-      flushQueue();
+      _flushQueue();
     }
   }
 
@@ -117,9 +117,9 @@ export function send(payload?: Payload) {
   if (!task && isOnline()) {
     task = true;
     if (typeof requestIdleCallback === 'function') {
-      requestIdleCallback(flushQueue);
+      requestIdleCallback(_flushQueue);
     } else {
-      setTimeout(flushQueue, 200);
+      setTimeout(_flushQueue, 200);
     }
   }
 }
