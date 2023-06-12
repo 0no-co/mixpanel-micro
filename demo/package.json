@@ -1,0 +1,15 @@
+{
+  "name": "demo",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "start": "vite"
+  },
+  "dependencies": {
+    "@0no-co/mixpanel-micro": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^4.3.9"
+  }
+}

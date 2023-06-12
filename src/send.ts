@@ -75,6 +75,10 @@ async function flushQueue() {
   while ((payload = queue.shift()) && isOnline())
     if (!(await flushPayload(payload))) queue.unshift(payload);
   task = false;
+
+  if (queue.length) {
+    setTimeout(send, 5000);
+  }
 }
 
 export function init() {
@@ -96,8 +100,8 @@ export function init() {
   document.addEventListener('visibilitychange', onVisibilityChange);
 }
 
-export function send(payload: Payload) {
-  queue.push(payload);
+export function send(payload?: Payload) {
+  if (payload) queue.push(payload);
 
   if (!task && isOnline()) {
     task = true;
