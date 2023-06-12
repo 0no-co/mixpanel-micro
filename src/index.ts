@@ -11,6 +11,10 @@ export function init(token: string) {
   initSend();
 }
 
+export function getProperty<Key extends keyof State>(key: Key): State[Key] {
+  return (getState()! || {})[key];
+}
+
 export function track(eventName: string, data: Partial<State>) {
   const id = rand16() + rand16();
   send({
@@ -24,7 +28,7 @@ export function track(eventName: string, data: Partial<State>) {
 }
 
 export function identify(id: string) {
-  const prevDistinctId = (getState() || {}).distinct_id;
+  const prevDistinctId = getProperty('distinct_id');
 
   register({
     distinct_id: id,
@@ -39,10 +43,9 @@ export function identify(id: string) {
 }
 
 export function setPeople(data: Record<string, unknown>) {
-  const state = getState()! || {};
   send({
-    $token: state.token,
-    $distinct_id: state.distinct_id,
+    $token: getProperty('token'),
+    $distinct_id: getProperty('distinct_id'),
     $set: data,
   });
 }
