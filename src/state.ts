@@ -57,6 +57,10 @@ export function init(token: string) {
   };
 }
 
+export function hasState() {
+  return !!state;
+}
+
 export function getState(): State | void {
   if (state) {
     state.$current_url = window.location.href;

@@ -1,4 +1,4 @@
-import { State } from './state';
+import { hasState, State } from './state';
 
 const TRACKING_URL = 'https://api.mixpanel.com/track?ip=1&verbose=1&data=';
 const ENGAGE_URL = 'https://api.mixpanel.com/engage?ip=1&verbose=1&data=';
@@ -72,13 +72,15 @@ async function flushPayload(data: Payload) {
 }
 
 async function flushQueue() {
-  let payload: Payload | void;
-  while ((payload = queue.shift()) && isOnline())
-    if (!(await flushPayload(payload))) queue.unshift(payload);
-  task = false;
+  if (hasState()) {
+    let payload: Payload | void;
+    while ((payload = queue.shift()) && isOnline())
+      if (!(await flushPayload(payload))) queue.unshift(payload);
+    task = false;
 
-  if (queue.length) {
-    setTimeout(send, 5000);
+    if (queue.length) {
+      setTimeout(send, 5000);
+    }
   }
 }
 
