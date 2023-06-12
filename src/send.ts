@@ -49,6 +49,8 @@ export async function _flushPayload(data: Payload) {
   if (!navigator.sendBeacon(url)) {
     let response: Response | void;
     for (let attempt = 0; attempt < ATTEMPTS && isOnline(); attempt++) {
+      await randomDelay();
+
       try {
         response = await fetch(url, {
           method: 'POST',
@@ -61,8 +63,6 @@ export async function _flushPayload(data: Payload) {
       } catch (_error: any) {
         response = undefined;
       }
-
-      await randomDelay();
     }
 
     return false;
