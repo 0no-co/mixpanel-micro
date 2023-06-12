@@ -35,7 +35,7 @@ export interface EngagePayload {
 
 export type Payload = EventPayload | EngagePayload;
 
-const queue: Payload[] = [];
+export const _queue: Payload[] = [];
 let task = false;
 let muted = false;
 
@@ -71,14 +71,14 @@ export async function _flushPayload(data: Payload) {
   return true;
 }
 
-async function _flushQueue() {
+export async function _flushQueue() {
   if (hasState()) {
     let payload: Payload | void;
-    while ((payload = queue.shift()) && isOnline())
-      if (!(await _flushPayload(payload))) queue.unshift(payload);
+    while ((payload = _queue.shift()) && isOnline())
+      if (!(await _flushPayload(payload))) _queue.unshift(payload);
     task = false;
 
-    if (queue.length) {
+    if (_queue.length) {
       setTimeout(send, 5000);
     }
   }
@@ -110,16 +110,16 @@ export function init() {
 }
 
 export function send(payload?: Payload) {
-  if (muted) return;
+  if (!muted) {
+    if (payload) _queue.push(payload);
 
-  if (payload) queue.push(payload);
-
-  if (!task && isOnline()) {
-    task = true;
-    if (typeof requestIdleCallback === 'function') {
-      requestIdleCallback(_flushQueue);
-    } else {
-      setTimeout(_flushQueue, 200);
+    if (!task && isOnline()) {
+      task = true;
+      if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(_flushQueue);
+      } else {
+        setTimeout(_flushQueue, 200);
+      }
     }
   }
 }
