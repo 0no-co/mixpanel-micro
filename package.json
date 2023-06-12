@@ -1,0 +1,66 @@
+{
+  "name": "@0no-co/mixpanel-micro",
+  "description": "Tiny implementation of the Mixpanel browser API for modern browsers",
+  "version": "0.1.1",
+  "sideEffects": false,
+  "public": true,
+  "license": "MIT",
+  "author": "0no.co <hi@0no.co>",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist/"
+  ],
+  "main": "dist/mixpanel-micro.js",
+  "module": "dist/mixpanel-micro.mjs",
+  "types": "dist/mixpanel-micro.d.ts",
+  "source": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/mixpanel-micro.d.ts",
+      "import": "./dist/mixpanel-micro.mjs",
+      "require": "./dist/mixpanel-micro.js",
+      "source": "./src/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "repository": "https://github.com/0no-co/mixpanel-micro",
+  "bugs": {
+    "url": "https://github.com/0no-co/mixpanel-micro/issues"
+  },
+  "scripts": {
+    "check": "tsc",
+    "build": "rollup -c scripts/rollup.config.mjs",
+    "prepublishOnly": "run-s check build",
+    "prepare": "node ./scripts/prepare.js || true"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "arrowParens": "avoid",
+    "trailingComma": "es5"
+  },
+  "lint-staged": {
+    "*.{js,ts}": "prettier --write",
+    "*.json": "prettier --write",
+    "*.md": "prettier --write"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.21.8",
+    "@babel/plugin-transform-block-scoping": "^7.21.0",
+    "@babel/plugin-transform-typescript": "^7.21.3",
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.2",
+    "@rollup/plugin-terser": "^0.4.3",
+    "lint-staged": "^12.3.7",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.6.0",
+    "rollup": "^3.23.0",
+    "rollup-plugin-cjs-check": "^1.0.2",
+    "rollup-plugin-dts": "^5.3.0",
+    "typescript": "^5.0.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
