@@ -97,8 +97,14 @@ export function init() {
     }
   }
 
-  window.addEventListener('online', onOnline, { passive: true });
+  window.addEventListener('online', onOnline);
   document.addEventListener('visibilitychange', onVisibilityChange);
+
+  return () => {
+    onOnline();
+    window.removeEventListener('online', onOnline);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+  };
 }
 
 export function send(payload?: Payload) {

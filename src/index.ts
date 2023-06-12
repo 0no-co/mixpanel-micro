@@ -9,7 +9,7 @@ export { mute, unmute } from './send';
 
 export function init(token: string) {
   initState(token);
-  initSend();
+  return initSend();
 }
 
 export function getProperty<Key extends keyof State>(key: Key): State[Key] {
