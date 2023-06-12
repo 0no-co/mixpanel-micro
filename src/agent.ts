@@ -104,32 +104,18 @@ export function getBrowserVersion(
   ua: string
 ): number | null {
   let matches: RegExpMatchArray | null = null;
-  switch (browser) {
-    case 'Chrome':
-    case 'Chrome iOS':
-    case 'UC Browser':
-    case 'Microsoft Edge':
-    case 'Mobile Safari':
-    case 'Safari':
-    case 'Opera':
-    case 'Firefox':
-    case 'Samsung Internet':
-      matches = ua.match(
-        /(?:SamsungBrowser|Edge|Chrome|FxiOS|CriOS|UCBrowser|UCWEB|Version|Opera|OPR|Firefox|FxiOS)\/(\d+(\.\d+)?)/
-      );
-      break;
-    case 'Konqueror':
-      matches = ua.match(/Konqueror:(\d+(\.\d+)?)/);
-      break;
-    case 'Android Mobile':
-      matches = ua.match(/android\s(\d+(\.\d+)?)/);
-      break;
-    case 'Internet Explorer':
-      matches = ua.match(/(rv:|MSIE )(\d+(\.\d+)?)/);
-      break;
-    case 'Mozilla':
-      matches = ua.match(/rv:(\d+(\.\d+)?)/);
-      break;
+  if (browser === 'Konqueror') {
+    matches = ua.match(/Konqueror:(\d+(\.\d+)?)/);
+  } else if (browser === 'Android Mobile') {
+    matches = ua.match(/android\s(\d+(\.\d+)?)/);
+  } else if (browser === 'Internet Explorer') {
+    matches = ua.match(/(rv:|MSIE )(\d+(\.\d+)?)/);
+  } else if (browser === 'Mozilla') {
+    matches = ua.match(/rv:(\d+(\.\d+)?)/);
+  } else {
+    matches = ua.match(
+      /(?:SamsungBrowser|Edge|Chrome|FxiOS|CriOS|UCBrowser|UCWEB|Version|Opera|OPR|Firefox|FxiOS)\/(\d+(\.\d+)?)/
+    );
   }
   const version = matches && parseFloat(matches[matches.length - 2]);
   return version || null;
