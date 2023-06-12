@@ -16,7 +16,7 @@ export function getProperty<Key extends keyof State>(key: Key): State[Key] {
   return (getState()! || {})[key];
 }
 
-export function track(eventName: string, data: Partial<State>) {
+export function track(eventName: string, data?: Partial<State>) {
   const id = rand16() + rand16();
   send({
     event: eventName,
