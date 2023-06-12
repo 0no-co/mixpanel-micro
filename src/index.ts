@@ -5,6 +5,7 @@ const rand16 = () => Math.random().toString(36).slice(2, 10);
 
 export type { State } from './state';
 export { register } from './state';
+export { mute, unmute } from './send';
 
 export function init(token: string) {
   initState(token);

@@ -37,6 +37,7 @@ export type Payload = EventPayload | EngagePayload;
 
 const queue: Payload[] = [];
 let task = false;
+let muted = false;
 
 async function flushPayload(data: Payload) {
   let url = '$set' in data ? ENGAGE_URL : TRACKING_URL;
@@ -101,6 +102,8 @@ export function init() {
 }
 
 export function send(payload?: Payload) {
+  if (muted) return;
+
   if (payload) queue.push(payload);
 
   if (!task && isOnline()) {
@@ -111,4 +114,15 @@ export function send(payload?: Payload) {
       setTimeout(flushQueue, 200);
     }
   }
+}
+
+export function mute() {
+  muted = true;
+  task = true;
+}
+
+export function unmute() {
+  muted = false;
+  task = false;
+  send();
 }
