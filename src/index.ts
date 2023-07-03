@@ -44,8 +44,5 @@ export function identify(id: string) {
 }
 
 export function setPeople(data: Record<string, unknown>) {
-  send({
-    $distinct_id: getBaseState().distinct_id,
-    $set: data,
-  });
+  send({ $set: data });
 }

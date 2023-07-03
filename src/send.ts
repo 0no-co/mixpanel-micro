@@ -1,7 +1,7 @@
 import { hasState, baseToken, getBaseState, State } from './state';
 
-const TRACKING_URL = 'https://api.mixpanel.com/track?ip=1&verbose=1&data=';
-const ENGAGE_URL = 'https://api.mixpanel.com/engage?ip=1&verbose=1&data=';
+const TRACKING_URL = 'https://api.mixpanel.com/track';
+const ENGAGE_URL = 'https://api.mixpanel.com/engage';
 const ATTEMPTS = 3;
 
 function base64(input: string): string {
@@ -29,7 +29,7 @@ export interface EventPayload {
 
 export interface EngagePayload {
   $token?: string;
-  $distinct_id: string;
+  $distinct_id?: string;
   $set: Record<string, unknown>;
 }
 
@@ -39,30 +39,30 @@ export const _queue: Payload[] = [];
 let task = false;
 let muted = false;
 
-export async function _flushPayload(data: Payload) {
-  let payload: Payload;
-  let url: string;
-  if ('$set' in data) {
-    url = ENGAGE_URL;
-    payload = {
-      ...data,
-      $token: baseToken || undefined,
-    };
-  } else {
-    url = TRACKING_URL;
-    payload = {
-      event: data.event,
-      properties: {
-        ...getBaseState(),
-        ...data.properties,
-        token: baseToken || undefined,
-      },
-    };
-  }
+export const _assemblePayload = (data: Payload): Payload =>
+  '$set' in data
+    ? {
+        ...data,
+        $distinct_id: getBaseState().distinct_id,
+        $token: baseToken || undefined,
+      }
+    : {
+        event: data.event,
+        properties: {
+          ...getBaseState(),
+          ...data.properties,
+          token: baseToken || undefined,
+        },
+      };
 
+export async function _flushPayload(data: Payload) {
+  const baseUrl = '$set' in data ? ENGAGE_URL : TRACKING_URL;
+  const payload: Payload = _assemblePayload(data);
   const serialized = base64(JSON.stringify(payload, replacer));
   const timestamp = Date.now();
-  url += `${encodeURIComponent(serialized)}&_=${timestamp}`;
+  const url =
+    baseUrl +
+    `?ip=1&verbose=1&data=${encodeURIComponent(serialized)}&_=${timestamp}`;
 
   if (!navigator.sendBeacon(url)) {
     let response: Response | void;
