@@ -1,4 +1,4 @@
-import { hasState, State } from './state';
+import { hasState, baseToken, getBaseState, State } from './state';
 
 const TRACKING_URL = 'https://api.mixpanel.com/track?ip=1&verbose=1&data=';
 const ENGAGE_URL = 'https://api.mixpanel.com/engage?ip=1&verbose=1&data=';
@@ -24,11 +24,11 @@ function replacer(_key: string, value: unknown) {
 
 export interface EventPayload {
   event: string;
-  properties: State;
+  properties: Partial<State>;
 }
 
 export interface EngagePayload {
-  $token: string;
+  $token?: string;
   $distinct_id: string;
   $set: Record<string, unknown>;
 }
@@ -40,10 +40,28 @@ let task = false;
 let muted = false;
 
 export async function _flushPayload(data: Payload) {
-  let url = '$set' in data ? ENGAGE_URL : TRACKING_URL;
-  const serialized = base64(JSON.stringify(data, replacer));
-  const timestamp = Date.now();
+  let payload: Payload;
+  let url: string;
+  if ('$set' in data) {
+    url = ENGAGE_URL;
+    payload = {
+      ...data,
+      $token: baseToken || undefined,
+    };
+  } else {
+    url = TRACKING_URL;
+    payload = {
+      event: data.event,
+      properties: {
+        ...getBaseState(),
+        ...data.properties,
+        token: baseToken || undefined,
+      },
+    };
+  }
 
+  const serialized = base64(JSON.stringify(payload, replacer));
+  const timestamp = Date.now();
   url += `${encodeURIComponent(serialized)}&_=${timestamp}`;
 
   if (!navigator.sendBeacon(url)) {
@@ -84,7 +102,7 @@ export async function _flushQueue() {
   }
 }
 
-export function init() {
+export function initSend() {
   function onOnline() {
     if (!task) {
       task = true;
