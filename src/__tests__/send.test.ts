@@ -1,7 +1,7 @@
 import { MockedFunction, vi, beforeEach, describe, it, expect } from 'vitest';
 
 import { State, hasState } from '../state';
-import { _flushPayload, _flushQueue, _queue } from '../send';
+import { _assemblePayload, _flushPayload, _flushQueue, _queue } from '../send';
 
 const TIME = 1686584284103;
 
@@ -10,6 +10,8 @@ let fetchFn: MockedFunction<typeof fetch>;
 
 vi.mock('../state', () => ({
   hasState: vi.fn(() => true),
+  getBaseState: vi.fn(() => ({ distinct_id: 'ID' })),
+  baseToken: 'TOKEN',
 }));
 
 beforeEach(() => {
@@ -22,6 +24,46 @@ beforeEach(() => {
   vi.stubGlobal('navigator', {
     sendBeacon: sendBeaconFn,
     onLine: true,
+  });
+});
+
+describe('_assemblePayload', () => {
+  it('combines base state, data, and a token', () => {
+    expect(_assemblePayload({} as any)).toEqual({
+      event: undefined,
+      properties: {
+        distinct_id: 'ID',
+        token: 'TOKEN',
+      },
+    });
+
+    expect(
+      _assemblePayload({
+        event: 'EVENT_NAME',
+        properties: {
+          test: 'test',
+        },
+      } as any)
+    ).toEqual({
+      event: 'EVENT_NAME',
+      properties: {
+        distinct_id: 'ID',
+        test: 'test',
+        token: 'TOKEN',
+      },
+    });
+
+    expect(
+      _assemblePayload({
+        $set: { test: 'test' },
+      } as any)
+    ).toEqual({
+      $distinct_id: 'ID',
+      $token: 'TOKEN',
+      $set: {
+        test: 'test',
+      },
+    });
   });
 });
 
@@ -39,7 +81,7 @@ describe('_flushPayload', () => {
     expect(url).toMatch(new RegExp(`&_=${TIME}$`));
 
     expect(url).toMatchInlineSnapshot(
-      '"https://api.mixpanel.com/track?ip=1&verbose=1&data=eyJldmVudCI6ImV2ZW50IiwicHJvcGVydGllcyI6e319&_=1686584284103"'
+      '"https://api.mixpanel.com/track?ip=1&verbose=1&data=eyJldmVudCI6ImV2ZW50IiwicHJvcGVydGllcyI6eyJkaXN0aW5jdF9pZCI6IklEIiwidG9rZW4iOiJUT0tFTiJ9fQ%3D%3D&_=1686584284103"'
     );
 
     expect(await result$).toBe(true);
@@ -68,7 +110,7 @@ describe('_flushPayload', () => {
     expect(url).toMatch(new RegExp(`&_=${TIME}$`));
 
     expect(url).toMatchInlineSnapshot(
-      '"https://api.mixpanel.com/track?ip=1&verbose=1&data=eyJldmVudCI6ImV2ZW50IiwicHJvcGVydGllcyI6e319&_=1686584284103"'
+      '"https://api.mixpanel.com/track?ip=1&verbose=1&data=eyJldmVudCI6ImV2ZW50IiwicHJvcGVydGllcyI6eyJkaXN0aW5jdF9pZCI6IklEIiwidG9rZW4iOiJUT0tFTiJ9fQ%3D%3D&_=1686584284103"'
     );
 
     expect(await result$).toBe(true);
@@ -99,7 +141,7 @@ describe('_flushPayload', () => {
 
     expect(sendBeaconFn).toHaveBeenCalled();
     expect(sendBeaconFn.mock.calls[0][0]).toMatchInlineSnapshot(
-      '"https://api.mixpanel.com/engage?ip=1&verbose=1&data=eyIkc2V0Ijp7InRlc3QiOiJ0ZXN0In19&_=1686584284103"'
+      '"https://api.mixpanel.com/engage?ip=1&verbose=1&data=eyIkc2V0Ijp7InRlc3QiOiJ0ZXN0In0sIiRkaXN0aW5jdF9pZCI6IklEIiwiJHRva2VuIjoiVE9LRU4ifQ%3D%3D&_=1686584284103"'
     );
   });
 });

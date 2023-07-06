@@ -1,7 +1,7 @@
-import { hasState, State } from './state';
+import { hasState, baseToken, getBaseState, State } from './state';
 
-const TRACKING_URL = 'https://api.mixpanel.com/track?ip=1&verbose=1&data=';
-const ENGAGE_URL = 'https://api.mixpanel.com/engage?ip=1&verbose=1&data=';
+const TRACKING_URL = 'https://api.mixpanel.com/track';
+const ENGAGE_URL = 'https://api.mixpanel.com/engage';
 const ATTEMPTS = 3;
 
 function base64(input: string): string {
@@ -24,12 +24,12 @@ function replacer(_key: string, value: unknown) {
 
 export interface EventPayload {
   event: string;
-  properties: State;
+  properties: Partial<State>;
 }
 
 export interface EngagePayload {
-  $token: string;
-  $distinct_id: string;
+  $token?: string;
+  $distinct_id?: string;
   $set: Record<string, unknown>;
 }
 
@@ -39,12 +39,30 @@ export const _queue: Payload[] = [];
 let task = false;
 let muted = false;
 
-export async function _flushPayload(data: Payload) {
-  let url = '$set' in data ? ENGAGE_URL : TRACKING_URL;
-  const serialized = base64(JSON.stringify(data, replacer));
-  const timestamp = Date.now();
+export const _assemblePayload = (data: Payload): Payload =>
+  '$set' in data
+    ? {
+        ...data,
+        $distinct_id: getBaseState().distinct_id,
+        $token: baseToken || undefined,
+      }
+    : {
+        event: data.event,
+        properties: {
+          ...getBaseState(),
+          ...data.properties,
+          token: baseToken || undefined,
+        },
+      };
 
-  url += `${encodeURIComponent(serialized)}&_=${timestamp}`;
+export async function _flushPayload(data: Payload) {
+  const baseUrl = '$set' in data ? ENGAGE_URL : TRACKING_URL;
+  const payload: Payload = _assemblePayload(data);
+  const serialized = base64(JSON.stringify(payload, replacer));
+  const timestamp = Date.now();
+  const url =
+    baseUrl +
+    `?ip=1&verbose=1&data=${encodeURIComponent(serialized)}&_=${timestamp}`;
 
   if (!navigator.sendBeacon(url)) {
     let response: Response | void;
@@ -84,7 +102,7 @@ export async function _flushQueue() {
   }
 }
 
-export function init() {
+export function initSend() {
   function onOnline() {
     if (!task) {
       task = true;
