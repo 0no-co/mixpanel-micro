@@ -9,6 +9,7 @@ let sendBeaconFn: MockedFunction<typeof navigator['sendBeacon']>;
 let fetchFn: MockedFunction<typeof fetch>;
 
 vi.mock('../state', () => ({
+  registeredState: { registered: true },
   hasState: vi.fn(() => true),
   getBaseState: vi.fn(() => ({ distinct_id: 'ID' })),
   baseToken: 'TOKEN',
@@ -33,6 +34,7 @@ describe('_assemblePayload', () => {
       event: undefined,
       properties: {
         distinct_id: 'ID',
+        registered: true,
         token: 'TOKEN',
       },
     });
@@ -48,6 +50,7 @@ describe('_assemblePayload', () => {
       event: 'EVENT_NAME',
       properties: {
         distinct_id: 'ID',
+        registered: true,
         test: 'test',
         token: 'TOKEN',
       },
@@ -81,7 +84,7 @@ describe('_flushPayload', () => {
     expect(url).toMatch(new RegExp(`&_=${TIME}$`));
 
     expect(url).toMatchInlineSnapshot(
-      '"https://api.mixpanel.com/track?ip=1&verbose=1&data=eyJldmVudCI6ImV2ZW50IiwicHJvcGVydGllcyI6eyJkaXN0aW5jdF9pZCI6IklEIiwidG9rZW4iOiJUT0tFTiJ9fQ%3D%3D&_=1686584284103"'
+      '"https://api.mixpanel.com/track?ip=1&verbose=1&data=eyJldmVudCI6ImV2ZW50IiwicHJvcGVydGllcyI6eyJkaXN0aW5jdF9pZCI6IklEIiwicmVnaXN0ZXJlZCI6dHJ1ZSwidG9rZW4iOiJUT0tFTiJ9fQ%3D%3D&_=1686584284103"'
     );
 
     expect(await result$).toBe(true);
@@ -110,7 +113,7 @@ describe('_flushPayload', () => {
     expect(url).toMatch(new RegExp(`&_=${TIME}$`));
 
     expect(url).toMatchInlineSnapshot(
-      '"https://api.mixpanel.com/track?ip=1&verbose=1&data=eyJldmVudCI6ImV2ZW50IiwicHJvcGVydGllcyI6eyJkaXN0aW5jdF9pZCI6IklEIiwidG9rZW4iOiJUT0tFTiJ9fQ%3D%3D&_=1686584284103"'
+      '"https://api.mixpanel.com/track?ip=1&verbose=1&data=eyJldmVudCI6ImV2ZW50IiwicHJvcGVydGllcyI6eyJkaXN0aW5jdF9pZCI6IklEIiwicmVnaXN0ZXJlZCI6dHJ1ZSwidG9rZW4iOiJUT0tFTiJ9fQ%3D%3D&_=1686584284103"'
     );
 
     expect(await result$).toBe(true);

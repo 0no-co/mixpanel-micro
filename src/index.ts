@@ -23,7 +23,7 @@ export function getProperty<Key extends keyof State>(key: Key): State[Key] {
 }
 
 export function track(eventName: string, data?: Partial<State>) {
-  const properties: Partial<State> = { ...registeredState };
+  const properties: Partial<State> = {};
   if (data) {
     for (const key in data) {
       properties[key] = data[key] || properties[key] || null;

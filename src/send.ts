@@ -1,4 +1,10 @@
-import { hasState, baseToken, getBaseState, State } from './state';
+import {
+  hasState,
+  baseToken,
+  getBaseState,
+  registeredState,
+  State,
+} from './state';
 
 const TRACKING_URL = 'https://api.mixpanel.com/track';
 const ENGAGE_URL = 'https://api.mixpanel.com/engage';
@@ -39,21 +45,30 @@ export const _queue: Payload[] = [];
 let task = false;
 let muted = false;
 
-export const _assemblePayload = (data: Payload): Payload =>
-  '$set' in data
-    ? {
-        ...data,
-        $distinct_id: getBaseState().distinct_id,
-        $token: baseToken || undefined,
-      }
-    : {
-        event: data.event,
-        properties: {
-          ...getBaseState(),
-          ...data.properties,
-          token: baseToken || undefined,
-        },
-      };
+export const _assemblePayload = (data: Payload): Payload => {
+  if ('$set' in data) {
+    return {
+      ...data,
+      $distinct_id: getBaseState().distinct_id,
+      $token: baseToken || undefined,
+    };
+  }
+
+  const properties = { ...getBaseState() };
+
+  for (const key in registeredState)
+    if (registeredState[key] != null) properties[key] = registeredState[key];
+
+  for (const key in data.properties)
+    if (data.properties[key] != null) properties[key] = data.properties[key];
+
+  properties.token = baseToken || undefined;
+
+  return {
+    event: data.event,
+    properties,
+  };
+};
 
 export async function _flushPayload(data: Payload) {
   const baseUrl = '$set' in data ? ENGAGE_URL : TRACKING_URL;
