@@ -1,7 +1,13 @@
 import { MockedFunction, vi, beforeEach, describe, it, expect } from 'vitest';
 
 import { State, hasState } from '../state';
-import { _assemblePayload, _flushPayload, _flushQueue, _queue } from '../send';
+import {
+  _assemblePayload,
+  _flushPayload,
+  _flushQueue,
+  _queue,
+  setBaseUrl,
+} from '../send';
 
 const TIME = 1686584284103;
 
@@ -26,6 +32,8 @@ beforeEach(() => {
     sendBeacon: sendBeaconFn,
     onLine: true,
   });
+
+  setBaseUrl('https://api.mixpanel.com');
 });
 
 describe('_assemblePayload', () => {
@@ -201,5 +209,25 @@ describe('_flushQueue', () => {
 
     await _flushQueue();
     expect(sendBeaconFn).toHaveBeenCalledTimes(0);
+  });
+
+  it('respects baseUrl when set', async () => {
+    setBaseUrl('https://custom-api.com');
+    const result$ = _flushPayload({
+      event: 'event',
+      properties: {} as State,
+    });
+
+    expect(fetchFn).not.toHaveBeenCalled();
+    expect(sendBeaconFn).toHaveBeenCalled();
+
+    const url = sendBeaconFn.mock.calls[0][0] as string;
+    expect(url).toMatch(new RegExp(`&_=${TIME}$`));
+
+    expect(url).toMatchInlineSnapshot(
+      '"https://custom-api.com/track?ip=1&verbose=1&data=eyJldmVudCI6ImV2ZW50IiwicHJvcGVydGllcyI6eyJkaXN0aW5jdF9pZCI6IklEIiwicmVnaXN0ZXJlZCI6dHJ1ZSwidG9rZW4iOiJUT0tFTiJ9fQ%3D%3D&_=1686584284103"'
+    );
+
+    expect(await result$).toBe(true);
   });
 });

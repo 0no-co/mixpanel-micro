@@ -5,16 +5,22 @@ import {
   register,
   State,
 } from './state';
-import { initSend, send } from './send';
+import { initSend, setBaseUrl, send } from './send';
 
 export type { State } from './state';
 export { register } from './state';
 export { mute, unmute } from './send';
 
 const rand16 = () => Math.random().toString(36).slice(2, 10);
-
-export function init(token: string) {
+/**
+ * If you need a different base URL rather than https://api.mixpanel.com, pass it as the second argument to `init`.
+ * (e.g. when using a proxy to track events)
+ */
+export function init(token: string, baseUrl?: string) {
   initState(token);
+  if (baseUrl) {
+    setBaseUrl(baseUrl);
+  }
   return initSend();
 }
 
