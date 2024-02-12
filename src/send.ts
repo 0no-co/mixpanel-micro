@@ -6,9 +6,15 @@ import {
   State,
 } from './state';
 
-const TRACKING_URL = 'https://api.mixpanel.com/track';
-const ENGAGE_URL = 'https://api.mixpanel.com/engage';
 const ATTEMPTS = 3;
+
+let trackingUrl = 'https://api.mixpanel.com/track';
+let engageUrl = 'https://api.mixpanel.com/engage';
+
+export function setBaseUrl(url: string) {
+  trackingUrl = url + '/track';
+  engageUrl = url + '/engage';
+}
 
 function base64(input: string): string {
   return btoa(unescape(encodeURIComponent(input)));
@@ -71,7 +77,7 @@ export const _assemblePayload = (data: Payload): Payload => {
 };
 
 export async function _flushPayload(data: Payload) {
-  const baseUrl = '$set' in data ? ENGAGE_URL : TRACKING_URL;
+  const baseUrl = '$set' in data ? engageUrl : trackingUrl;
   const payload: Payload = _assemblePayload(data);
   const serialized = base64(JSON.stringify(payload, replacer));
   const timestamp = Date.now();
